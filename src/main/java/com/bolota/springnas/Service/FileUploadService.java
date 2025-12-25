@@ -57,6 +57,9 @@ public class FileUploadService{
                             fileBytes  = new byte[UuidEntity.fileChunkSize];
                             int size = b.read(fileBytes);
                             if (size ==-1){
+                                nmr++;
+                                tempFile.delete();
+                                tempFile = new File(path + nmr);
                                 continue;
                             }
                             trueBuffered.write(fileBytes,0,size);
