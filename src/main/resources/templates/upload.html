@@ -34,6 +34,34 @@
             margin-bottom: 25px;
         }
 
+        /* NAV */
+        .header-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            color: #374151;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background: #d1d5db;
+        }
+
         .title {
             font-size: 24px;
             font-weight: 700;
@@ -236,11 +264,18 @@
 <body>
 <div class="container">
     <div class="header">
-        <div class="title">Upload em chunks</div>
-        <div class="subtitle">Front preparado para backend Spring Boot em /upload/init, /upload/chunk e /upload/finish</div>
-        <div class="badge">
-            <span class="badge-dot"></span>
-            <span>Ideal para arquivos grandes (ex.: 20GB)</span>
+        <div class="header-top">
+            <div>
+                <div class="title">Upload em chunks</div>
+                <div class="subtitle">Front preparado para backend Spring Boot em /upload/init, /upload/chunk e /upload/finish</div>
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    <span>Ideal para arquivos grandes (ex.: 20GB)</span>
+                </div>
+            </div>
+
+            <!-- LINK PRA DOWNLOAD -->
+            <a class="nav-link" href="/download">⬇️ Ir para Downloads</a>
         </div>
     </div>
 
@@ -282,7 +317,7 @@
 
 <script>
     // Ajuste o chunk aqui (8MB tá ok pra arquivo grande)
-    const CHUNK_SIZE = 10 * 1024 * 1024;
+    const CHUNK_SIZE = 50 * 1024 * 1024;
 
     let selectedFile = null;
     let uploadId = null;
@@ -395,7 +430,6 @@
             let sentChunks = 0;
 
             for (let i = 0; i < totalChunks; i++) {
-                // se o usuário cancelou
                 if (!isUploading) {
                     updateStatus('Upload cancelado pelo usuário.');
                     showAlert('Upload cancelado pelo usuário.', 'error');

@@ -25,7 +25,7 @@ public class FileUploadEntity implements Serializable{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String fl_date;
+    private String date;
     private String fl_name;
     private Long fl_size;
     private String fl_path;

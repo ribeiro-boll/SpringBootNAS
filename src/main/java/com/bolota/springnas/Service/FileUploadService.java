@@ -1,5 +1,6 @@
 package com.bolota.springnas.Service;
 
+import com.bolota.springnas.Entities.UuidEntity;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 
@@ -53,7 +54,7 @@ public class FileUploadService{
                 while (tempFile.exists()){
                     try (FileInputStream tempStream = new FileInputStream(tempFile)){
                         try(BufferedInputStream b = new BufferedInputStream(tempStream)){
-                            fileBytes  = new byte[10*1024*1024];
+                            fileBytes  = new byte[UuidEntity.fileChunkSize];
                             int size = b.read(fileBytes);
                             if (size ==-1){
                                 continue;

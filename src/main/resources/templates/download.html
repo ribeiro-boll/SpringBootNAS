@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini NAS - Gerenciador de Arquivos</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 24px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .size-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .size-selector label {
+            color: #555;
+            font-weight: 600;
+        }
+
+        .size-selector select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .size-selector select:hover {
+            border-color: #667eea;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            display: none;
+            border-left: 4px solid #c33;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            padding: 20px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+        }
+
+        th {
+            background: #f5f5f5;
+            color: #333;
+            font-weight: 700;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            color: #555;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        .download-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background 0.2s, transform 0.05s;
+            white-space: nowrap;
+        }
+
+        .download-btn:hover { background: #5568d3; }
+        .download-btn:active { transform: scale(0.98); }
+
+        .btn {
+            padding: 8px 14px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #333;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.2s;
+            text-decoration: none; /* <-- pra <a class="btn"> */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            margin-top: 10px;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+            font-weight: 700;
+            min-width: 220px;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<main class="container">
+    <h1>📁 Mini NAS</h1>
+
+    <div class="toolbar">
+        <div class="size-selector">
+            <label for="pageSize">Itens por página:</label>
+            <select id="pageSize">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <div style="display:flex; gap:10px; align-items:center;">
+            <!-- LINK PRA UPLOAD -->
+            <a class="btn" href="/upload">⬆️ Ir para Upload</a>
+            <button class="btn" id="btnRefresh" type="button">↻ Atualizar</button>
+        </div>
+    </div>
+
+    <div class="error-message" id="errorMessage" role="alert" aria-live="polite"></div>
+
+    <section id="content" aria-live="polite">
+        <div class="loading">Carregando arquivos...</div>
+    </section>
+
+    <footer class="pagination" id="pagination">
+        <div class="pagination-buttons">
+            <button class="btn" id="btnPrev" type="button">← Anterior</button>
+            <button class="btn" id="btnNext" type="button">Próximo →</button>
+        </div>
+
+        <div class="pagination-info" id="paginationInfo"></div>
+    </footer>
+</main>
+
+<script>
+    const API_BASE = '';
+    const DEFAULT_SORT = 'date,desc';
+
+    const state = {
+        currentPage: 0,
+        pageSize: 10,
+        totalPages: 0,
+        totalElements: 0,
+        items: []
+    };
+
+    let currentAbortController = null;
+
+    const contentEl = document.getElementById('content');
+    const errorEl = document.getElementById('errorMessage');
+    const pageSizeSelect = document.getElementById('pageSize');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const btnRefresh = document.getElementById('btnRefresh');
+    const paginationInfo = document.getElementById('paginationInfo');
+
+    function safeString(value) { return String(value ?? ''); }
+
+    function escapeHtml(value) {
+        const text = safeString(value);
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return text.replace(/[&<>"']/g, (m) => map[m]);
+    }
+
+    function formatBytes(bytes) {
+        const n = Number(bytes);
+        if (!Number.isFinite(n) || n <= 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.min(Math.floor(Math.log(n) / Math.log(k)), sizes.length - 1);
+        const value = n / Math.pow(k, i);
+        const decimals = (i === 0 || value >= 10) ? 0 : 2;
+        return value.toFixed(decimals) + ' ' + sizes[i];
+    }
+
+    function showError(message) {
+        errorEl.textContent = message;
+        errorEl.classList.add('show');
+    }
+
+    function clearError() {
+        errorEl.classList.remove('show');
+        errorEl.textContent = '';
+    }
+
+    function setLoading() {
+        contentEl.innerHTML = '<div class="loading">Carregando arquivos...</div>';
+    }
+
+    function buildListUrl() {
+        const params = new URLSearchParams({
+            page: String(state.currentPage),
+            size: String(state.pageSize),
+            sort: DEFAULT_SORT
+        });
+        return API_BASE + '/files?' + params.toString();
+    }
+
+    function openFile(fileId) {
+        const id = encodeURIComponent(safeString(fileId));
+        const url = API_BASE + '/files/' + id + '/content';
+        window.open(url, '_blank', 'noopener');
+    }
+
+    function renderTable() {
+        if (!state.items || state.items.length === 0) {
+            contentEl.innerHTML = '<div class="empty-state"><p>Nenhum arquivo encontrado</p></div>';
+            return;
+        }
+
+        let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Tamanho</th>
+              <th>Data de Upload</th>
+              <th>Tipo</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+        for (const item of state.items) {
+            const id = safeString(item.id);
+            const name = escapeHtml(item.name || '—');
+            const size = formatBytes(item.size);
+            const dateText = escapeHtml(item.date || '—');
+            const type = '—';
+
+            html += `
+          <tr>
+            <td>${name}</td>
+            <td>${size}</td>
+            <td>${dateText}</td>
+            <td>${type}</td>
+            <td>
+              <button class="download-btn" type="button" data-id="${escapeHtml(id)}">▶ Abrir</button>
+            </td>
+          </tr>
+        `;
+        }
+
+        html += `
+          </tbody>
+        </table>
+      `;
+
+        contentEl.innerHTML = html;
+    }
+
+    function updatePagination() {
+        const uiPage = state.totalPages > 0 ? (state.currentPage + 1) : 0;
+        paginationInfo.textContent =
+            'Página ' + uiPage + ' de ' + state.totalPages +
+            ' • Total: ' + state.totalElements + ' arquivo' + (state.totalElements !== 1 ? 's' : '');
+
+        btnPrev.disabled = state.currentPage <= 0;
+        btnNext.disabled = (state.totalPages === 0) || (state.currentPage >= (state.totalPages - 1));
+    }
+
+    async function loadFiles() {
+        if (currentAbortController) currentAbortController.abort();
+        currentAbortController = new AbortController();
+
+        setLoading();
+        clearError();
+
+        try {
+            const url = buildListUrl();
+            const resp = await fetch(url, { signal: currentAbortController.signal });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+            const data = await resp.json();
+
+            state.totalPages = Number(data.totalPages ?? 0);
+            state.totalElements = Number(data.totalElements ?? 0);
+            state.items = Array.isArray(data.content) ? data.content : [];
+
+            state.currentPage = Number(data.number ?? state.currentPage);
+            state.pageSize = Number(data.size ?? state.pageSize);
+            pageSizeSelect.value = String(state.pageSize);
+
+            if (state.totalPages > 0 && state.currentPage > state.totalPages - 1) {
+                state.currentPage = state.totalPages - 1;
+                return loadFiles();
+            }
+
+            renderTable();
+            updatePagination();
+        } catch (err) {
+            if (err.name === 'AbortError') return;
+
+            console.error('Erro ao carregar arquivos:', err);
+            showError('Erro ao carregar arquivos. (' + err.message + ')');
+            contentEl.innerHTML = '<div class="empty-state"><p>❌ Falha ao conectar ao servidor</p></div>';
+
+            state.totalPages = 0;
+            state.totalElements = 0;
+            state.items = [];
+            updatePagination();
+        }
+    }
+
+    contentEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.download-btn');
+        if (!btn) return;
+        const fileId = btn.dataset.id;
+        if (!fileId) return;
+        openFile(fileId);
+    });
+
+    btnPrev.addEventListener('click', () => {
+        if (state.currentPage > 0) {
+            state.currentPage--;
+            loadFiles();
+        }
+    });
+
+    btnNext.addEventListener('click', () => {
+        if (state.totalPages > 0 && state.currentPage < state.totalPages - 1) {
+            state.currentPage++;
+            loadFiles();
+        }
+    });
+
+    btnRefresh.addEventListener('click', () => loadFiles());
+
+    pageSizeSelect.addEventListener('change', (e) => {
+        const n = Number(e.target.value);
+        state.pageSize = Number.isFinite(n) && n > 0 ? n : 10;
+        state.currentPage = 0;
+        loadFiles();
+    });
+
+    pageSizeSelect.value = String(state.pageSize);
+    loadFiles();
+</script>
+</body>
+</html>

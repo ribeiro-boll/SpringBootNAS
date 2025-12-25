@@ -2,10 +2,11 @@ package com.bolota.springnas.Entities;
 
 import java.util.HashMap;
 
-public class UUIDEntity {
+public class UuidEntity {
     private static final char[] UUID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+    public static int fileChunkSize = 50*1024*1024;
     HashMap<String,FileUploadEntity> uuidMap;
-    public UUIDEntity(){
+    public UuidEntity(){
         uuidMap = new HashMap<>();
     }
     public void insertFile(String uuid, FileUploadEntity file){
@@ -22,7 +23,7 @@ public class UUIDEntity {
     public boolean checkUUID(String uuid){
         return uuidMap.containsKey(uuid);
     }
-    public static String generateUUID(UUIDEntity list){
+    public static String generateUUID(UuidEntity list){
         StringBuilder s;
         do{
             s = new StringBuilder();
