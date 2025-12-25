@@ -1,3 +1,6 @@
+
+<img src="/src/main/resources/images/preview.gif" width="800" alt="Project Logo">
+
 # SpringNAS🍃 (Mini NAS em Spring Boot)
 
 Backend em **Spring Boot** para um “mini NAS” doméstico: faz **upload de arquivos grandes em partes (chunks)**, salva o **arquivo no disco** e guarda **metadados no banco via JPA**.
