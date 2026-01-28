@@ -165,6 +165,4 @@ Retorna:
 * Sessão de upload é **em memória** (se reiniciar a aplicação, perde o estado do `uploadId`)
 * Não há **resume/retry inteligente** nem checksum (integridade) dos chunks
 * Não há suporte a **HTTP Range** no download (sem resume parcial)
-* Tratamento de erros HTTP (404/400) pode ser melhorado (MVP)
-
-```
+* Tratamento de erros HTTP (404/400) pode ser melhorado
