@@ -1,7 +1,7 @@
 
 <img src="/src/main/resources/images/preview.gif" width="800" alt="Project Logo">
 
-# SpringNAS🍃 (Mini NAS em Spring Boot)
+# 🍃 SpringNAS (Mini NAS em Spring Boot)
 
 Backend em **Spring Boot** para um “mini NAS” doméstico: faz **upload de arquivos grandes em partes (chunks)**, salva o **arquivo no disco** e guarda **metadados no banco via JPA**.
 Também oferece **listagem paginada** e **download por streaming** (sem alocar o arquivo inteiro na RAM).
@@ -165,6 +165,4 @@ Retorna:
 * Sessão de upload é **em memória** (se reiniciar a aplicação, perde o estado do `uploadId`)
 * Não há **resume/retry inteligente** nem checksum (integridade) dos chunks
 * Não há suporte a **HTTP Range** no download (sem resume parcial)
-* Tratamento de erros HTTP (404/400) pode ser melhorado (MVP)
-
-```
+* Tratamento de erros HTTP (404/400) pode ser melhorado
