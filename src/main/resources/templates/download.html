@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mini NAS - Gerenciador de Arquivos</title>
-
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -130,6 +130,23 @@
         .download-btn:hover { background: #5568d3; }
         .download-btn:active { transform: scale(0.98); }
 
+        .delete-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 7px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            margin-left: 6px;
+            transition: background 0.2s, transform 0.05s;
+            white-space: nowrap;
+        }
+
+        .delete-btn:hover { background: #c53030; }
+        .delete-btn:active { transform: scale(0.98); }
+
         .btn {
             padding: 8px 14px;
             border: 1px solid #ddd;
@@ -140,7 +157,7 @@
             font-size: 14px;
             font-weight: 700;
             transition: all 0.2s;
-            text-decoration: none; /* <-- pra <a class="btn"> */
+            text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -208,7 +225,6 @@
         </div>
 
         <div style="display:flex; gap:10px; align-items:center;">
-            <!-- LINK PRA UPLOAD -->
             <a class="btn" href="/upload">⬆️ Ir para Upload</a>
             <button class="btn" id="btnRefresh" type="button">↻ Atualizar</button>
         </div>
@@ -300,6 +316,27 @@
         window.open(url, '_blank', 'noopener');
     }
 
+    async function deleteFile(fileId) {
+        const id = safeString(fileId);
+        const confirmed = window.confirm('Tem certeza que deseja remover este arquivo?');
+        if (!confirmed) return;
+
+        clearError();
+
+        try {
+            const url = API_BASE + '/remove/' + encodeURIComponent(id) + '/content';
+            const resp = await fetch(url, { method: 'DELETE' }); // troque para 'GET' se seu endpoint for GET
+            if (!resp.ok) {
+                throw new Error('HTTP ' + resp.status);
+            }
+            // recarrega a lista após remover
+            loadFiles();
+        } catch (err) {
+            console.error('Erro ao remover arquivo:', err);
+            showError('Erro ao remover arquivo. (' + err.message + ')');
+        }
+    }
+
     function renderTable() {
         if (!state.items || state.items.length === 0) {
             contentEl.innerHTML = '<div class="empty-state"><p>Nenhum arquivo encontrado</p></div>';
@@ -335,6 +372,7 @@
             <td>${type}</td>
             <td>
               <button class="download-btn" type="button" data-id="${escapeHtml(id)}">▶ Abrir</button>
+              <button class="delete-btn" type="button" data-id="${escapeHtml(id)}">✖</button>
             </td>
           </tr>
         `;
@@ -402,11 +440,18 @@
     }
 
     contentEl.addEventListener('click', (e) => {
-        const btn = e.target.closest('.download-btn');
-        if (!btn) return;
-        const fileId = btn.dataset.id;
-        if (!fileId) return;
-        openFile(fileId);
+        const downloadBtn = e.target.closest('.download-btn');
+        if (downloadBtn) {
+            const fileId = downloadBtn.dataset.id;
+            if (fileId) openFile(fileId);
+            return;
+        }
+
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (deleteBtn) {
+            const fileId = deleteBtn.dataset.id;
+            if (fileId) deleteFile(fileId);
+        }
     });
 
     btnPrev.addEventListener('click', () => {
